@@ -4,10 +4,27 @@ const http = require('http');
 const { WebSocketServer } = require('ws');
 const messageRoutes = require('./routes/messages');
 const messageService = require('./services/messageService');
+const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
 app.use(express.json());
+
+// CORS: allow client application origins. Configure via CLIENT_ORIGIN env var (comma-separated)
+const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
+const allowedOrigins = CLIENT_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean);
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow non-browser (e.g., curl, server-to-server) requests when origin is undefined
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) !== -1) return callback(null, true);
+      return callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+  })
+);
 
 const PORT = process.env.PORT || 4000;
 
